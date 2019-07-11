@@ -1,23 +1,4 @@
-#!/usr/bin/python
-
-from argparse import ArgumentParser
-
-# Options parsing
-parser = ArgumentParser(description='Mufi fetches your recommendations from last.fm 🐜 ')
-parser.add_argument("-a", dest="artists", action="store_true", help="recommended artists (default)", default=False)
-parser.add_argument("-l", dest="albums", action="store_true", help="recommended albums", default=False)
-parser.add_argument("-n", dest="number", type=int, help="results number", default=0)
-parser.add_argument("-o", dest="orderby", type=str, help="sort by: none, random (default), name, listeners", default='random')
-parser.add_argument("-s", dest="context", action='store_true', help="show similar/context", default=False)
-parser.add_argument("-v", dest="verbose", action='count', help="verbose", default=0)
-options = parser.parse_args()
-
-artists = True if not any([options.artists, options.albums]) else options.artists
-albums = options.albums
-number = int(options.number)
-orderby = options.orderby
-context = options.context
-verbose = options.verbose
+#!/usr/bin/env python
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -73,10 +54,10 @@ def get_recom_artists(drv):
     artists_elems = drv.find_elements_by_class_name('recs-feed-item--artist')
     if artists_elems:
         results = []
-        for i, artist_elem in enumerate(artists_elems):
+        for artist_elem in artists_elems:
             artist_name = artist_elem.find_element_by_xpath('.//h3[@class="recs-feed-title"]').text
             listeners = artist_elem.find_element_by_xpath('.//p[@class="recs-feed-description"]').text.replace(',', ' ').strip()
-            listeners = re.sub('\D', '', listeners)
+            listeners = re.sub(r'\D', '', listeners)
             listeners = int(listeners) if listeners else ''
             context = artist_elem.find_element_by_xpath('.//div[@class="context"]').text.strip()
             artist = {'name': artist_name, 'listeners': listeners, 'context': context}
@@ -89,12 +70,12 @@ def get_recom_albums(drv):
     albums_elems = drv.find_elements_by_class_name('recs-feed-inner-wrap')
     if albums_elems:
         results = []
-        for i, album_elem in enumerate(albums_elems):
+        for album_elem in albums_elems:
             album_name = album_elem.find_element_by_xpath('.//h3[@class="recs-feed-title"]').text
             artist_name = album_elem.find_element_by_xpath('.//p[@class="recs-feed-description"]/a').text
             listeners_text = album_elem.find_element_by_xpath('.//p[@class="recs-feed-description"]').text
-            listeners_matches = re.search('\d+ listeners', re.sub('[^\w\s]', '', listeners_text))
-            listeners = int(re.sub('\D', '', listeners_matches[0])) if listeners_matches else ''
+            listeners_matches = re.search(r'\d+ listeners', re.sub(r'[^\w\s]', '', listeners_text))
+            listeners = int(re.sub(r'\D', '', listeners_matches[0])) if listeners_matches else ''
 
             context = album_elem.find_element_by_xpath('.//div[@class="context"]').text.strip()
             artist = {'artist': artist_name, 'album': album_name, 'context': context, 'listeners': listeners}
@@ -125,7 +106,7 @@ def print_artists(lst, context=True, comfy=False, verbose=0):
             print(artist['name'], listeners, sep='')
         elif verbose == 2:
             print(term.BOLD, artist['name'], term.END, listeners, sep='')
-        elif verbose == 3:
+        elif verbose >= 3:
             print('[%d] ' % (i+1), term.BOLD, artist['name'], term.END, listeners, sep='')
         else:
             print(artist['name'])
@@ -153,21 +134,44 @@ def print_albums(lst, context=True, comfy=False, verbose=0):
         if comfy:
             print('')
 
-
-
-if __name__ == '__main__':
+def init_drv(headless=True, wait=15):
 
     options = webdriver.ChromeOptions()
-    options.headless = True
+    options.headless = headless
     login_url = 'https://secure.last.fm/login'
 
     drv = webdriver.Chrome(options=options)
+    drv.implicitly_wait(wait)
     drv.get(login_url)
-    drv.implicitly_wait(15)
+    return drv
+
+#if __name__ == '__main__':
+def main():
+
+    from argparse import ArgumentParser
+
+    # Options parsing
+    parser = ArgumentParser(description='Mufi fetches your recommendations from last.fm 🐜 ')
+    parser.add_argument("-a", dest="artists", action="store_true", help="recommended artists (default)", default=False)
+    parser.add_argument("-l", dest="albums", action="store_true", help="recommended albums", default=False)
+    parser.add_argument("-n", dest="number", type=int, help="results number", default=0)
+    parser.add_argument("-o", dest="orderby", type=str, help="sort by: none, random (default), name, listeners", default='random')
+    parser.add_argument("-s", dest="context", action='store_true', help="show similar/context", default=False)
+    parser.add_argument("-v", dest="verbose", action='count', help="verbose", default=0)
+    options = parser.parse_args()
+
+    artists = True if not any([options.artists, options.albums]) else options.artists
+    albums = options.albums
+    number = int(options.number)
+    orderby = options.orderby
+    context = options.context
+    verbose = options.verbose
+
+    drv = init_drv()
     
     login_data = get_login_data(paths)
     if not login_data:
-        print('No login data found')
+        print('No login data found. Please say `echo login password > ~/.lastfm` in terminal. You can also use `~/.config/mufi/.lastfm` file to store your login data')
         sys.exit(1)
 
     user, password = login_data
@@ -181,6 +185,5 @@ if __name__ == '__main__':
         nav_albums(drv)
         albums = sort(get_recom_albums(drv), key=orderby, rev=True, num=number)
         print_albums(albums, context=context, verbose=verbose)
-        
 
     drv.quit()

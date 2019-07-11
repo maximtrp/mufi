@@ -1,63 +1,10 @@
-#!/usr/bin/python3
-
-from argparse import ArgumentParser
-
-# Options parsing
-parser = ArgumentParser(description="Mufi finds albums by style, genre, date, or mood 🐜")
-parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
-parser.add_argument("-d", dest="date", type=str, help="date interval, e.g. 2010-2019", default=None)
-parser.add_argument("-g", dest="genre", type=str, help="genres, e.g. rock electronic", default=None)
-parser.add_argument("-m", dest="moods", type=str, help="moods, e.g. sad ", default=None)
-parser.add_argument("-n", dest="albums_number", type=int, help="number of albums to get (default: 1)", default=1)
-parser.add_argument("-r", dest="rating", type=str, help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
-parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
-parser.add_argument("-s", dest="style", type=str, help="styles, e.g. \"blues rock,indie\"", default=None)
-parser.add_argument("-v", dest="verbose", action="count", help="verbose", default=0)
-
-order_group = parser.add_argument_group('sorting/matching arguments')
-order_group.add_argument("-o", dest="order", type=str, help="sorting criteria", choices=['album', 'year', 'rating'], default=None)
-order_group.add_argument("-x", dest="strict", type=int, help="strictness level for style/genre matching", choices=range(3), default=0)
-order_group.add_argument("--and", dest="logic", action="store_true", help="use AND logic (default: OR)", default=False)
-order_group.add_argument("--asc", dest="order_asc", action='store_true', help="ascending sort", default=False)
-
-group_random = parser.add_argument_group("randomizer arguments")
-group_random.add_argument("-k", dest="sample_num", type=int, help="number of random styles/genres to get", default=1)
-group_random.add_argument("--random-album", dest="random_album", action='store_true', help="get random album", default=False)
-group_random.add_argument("--random-style", dest="random_style", action='store_true', help="get random style", default=False)
-group_random.add_argument("--random-genre", dest="random_genre", action='store_true', help="get random genre", default=False)
-
-options = parser.parse_args()
+#!/usr/bin/env python
 
 import random
 import re
 import time
 import sys
-
-
-# Preprocessing
-dates = list(map(int, re.split('\W', options.date))) if options.date else []
-strict = options.strict
-if strict:
-    styles = [list(map(str.strip, re.split('\W', p.strip()))) for p in re.split('[^\w\s]', options.style)] if options.style else None
-    genres = [list(map(str.strip, re.split('\W', p.strip()))) for p in re.split('[^\w\s]', options.genre)] if options.genre else None
-else:
-    styles = re.split('\W', options.style) if options.style else None
-    genres = re.split('\W', options.genre) if options.genre else None
-logic = 'and' if options.logic else 'or'
-moods = re.split('\W', options.moods) if options.moods else None
-albums_number = int(options.albums_number)
-sample_num = int(options.sample_num)
-order = options.order
-order_asc = not options.order_asc if order == 'rating' else options.order_asc
-rating = list(map(float, re.split('\s', options.rating))) if options.rating else []
-rectypes = {'album': 'recordingtype:mainalbum',
-            'live': 'recordingtype:live',
-            'studio': 'recordingtype!:live',
-            'single': 'recordingtype:single',
-            'remix': 'recordingtype:remix',
-            'va': 'recordingtype:variousartists',
-            }
-verbose = options.verbose
+from selenium import webdriver
 
 class term:
    PURPLE = '\033[95m'
@@ -71,34 +18,32 @@ class term:
    UNDERLINE = '\033[4m'
    END = '\033[0m'
 
-# Webdriver init
-from selenium import webdriver
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.common.action_chains import ActionChains
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.common.by import By
+def init_drv(headless=True, wait=10):
 
-chrome_options = webdriver.ChromeOptions()
-chrome_options.headless = True
-base_url = 'https://www.allmusic.com/advanced-search/'
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.headless = headless
+    chrome_prefs = {}
+    chrome_options.experimental_options["prefs"] = chrome_prefs
+    chrome_prefs["profile.default_content_settings"] = {"images": 2}
+    chrome_prefs["profile.managed_default_content_settings"] = {"images": 2}
+    base_url = 'https://www.allmusic.com/advanced-search/'
 
-drv = webdriver.Chrome(options=chrome_options)
-drv.implicitly_wait(10)
-drv.get(base_url)
-
+    drv = webdriver.Chrome(options=chrome_options)
+    drv.implicitly_wait(wait)
+    drv.get(base_url)
+    return drv
 
 def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=False, rand_num=1):
 
     elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
     results = []
-    find = all if strict else any
         
     if elems:
         if patterns:
             for el in elems:
                 li_text = el.get_attribute('data-text-filter')
                 if strict == 2:
-                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) == len(re.split('\W', li_text)) for pat in patterns])
+                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) == len(re.split(r'\W', li_text)) for pat in patterns])
                 elif strict == 1:
                     select = any([len(re.findall("|".join(pat), el.get_attribute('data-text-filter'), re.IGNORECASE)) >= len(pat) for pat in patterns])
                 else:
@@ -109,7 +54,7 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
                     eid = el.find_element_by_tag_name('input').get_attribute('id')
                     item = {'name': name, 'id': eid}
                     results.append(item)
-            results = random.sample(result, rand_num) if rand else results
+            results = random.sample(results, rand_num) if rand else results
         elif not patterns and rand:
             chosen_elems = random.sample(elems, rand_num)
             for el in chosen_elems:
@@ -121,11 +66,12 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
     return None
 
 
-def select_genre_or_style(drv, patterns, logic, what='style', strict=False, rand=False, rand_num=1):
+def select_genre_or_style(drv, patterns, logic=False, what='style', strict=False, rand=False, rand_num=1):
     
     lst = __get_genre_or_style(drv, patterns, what, strict, rand, rand_num)
+    logic_str = ' AND ' if logic else ' OR '
     if lst:
-        result = 'Selected ' + what + 's: ' + (" " + logic.upper() + " ").join([l['name'] for l in lst])
+        result = 'Selected ' + what + 's: ' + logic_str.join([l['name'] for l in lst])
 
         ids = [l['id'] for l in lst]
         script = '%s.forEach(function(e, i){document.getElementById(e).click();});' % ids
@@ -175,11 +121,12 @@ def select_date(drv, dates):
     return drv
 
 
-def select_logic(drv, logic):
+def select_logic(drv, logic=False):
 
-    class_name = logic + '-logic'
+    class_name = ('and' if logic else 'or') + '-logic'
     drv.find_element_by_class_name(class_name)
-    script = "document.getElementsByClassName('%s')[0].click();" % class_name
+    drv.find_element_by_xpath('//div[@class="desktop-results"]')
+    script = "document.getElementsByClassName('desktop-results')[0].remove();document.getElementsByClassName('%s')[0].click();" % class_name
     drv.execute_script(script)
     return drv
 
@@ -217,7 +164,6 @@ def set_sorting(drv, order=None, order_asc=False):
         if not order_asc:
             script = "document.getElementsByClassName('{}')[0].children[0].click();".format(order)
             drv.find_element_by_class_name("desktop-results")
-            #el = wait.WebDriverWait(drv, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "desktop-results")))
             drv.execute_script(script)
             
     return drv
@@ -237,7 +183,7 @@ def get_albums(drv, num=1, rand=False):
             date = int(date_el) if date_el else ''
             artist = el.find_element_by_class_name("artist").text
             rating = el.find_element_by_xpath("td[@class='rating']/div").get_attribute('class')
-            match = re.findall('(\d+)$', rating)
+            match = re.findall(r'(\d+)$', rating)
             stars = int(match[0]) if match else 0
             stars = int(stars / 2 + 0.5) if stars > 1 else stars
             album = {'url': url, 'rating': stars, 'artist': artist, 'date': date, 'title': title}
@@ -264,45 +210,105 @@ def print_albums(albums, verbose=0):
             print('Sorry, nothing found')
         sys.exit(1)
 
+#if __name__ == '__main__':
+def main():
 
-# RUNNING
-if styles or options.random_style:
-    drv, result = select_genre_or_style(drv, styles, logic, 'style', strict=strict, rand=options.random_style, rand_num=sample_num)
-    if verbose > 1:
-        print(result)
+    from argparse import ArgumentParser
 
-if genres or options.random_genre:
-    drv, result = select_genre_or_style(drv, genres, logic, 'genre', strict=strict, rand=options.random_genre, rand_num=sample_num)
+    # Options parsing
+    parser = ArgumentParser(description="Mufi finds albums by style, genre, date, or mood 🐜")
+    parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
+    parser.add_argument("-d", dest="date", type=str, help="date interval, e.g. 2010-2019", default=None)
+    parser.add_argument("-g", dest="genre", type=str, help="genres, e.g. rock electronic", default=None)
+    parser.add_argument("-m", dest="moods", type=str, help="moods, e.g. sad ", default=None)
+    parser.add_argument("-n", dest="albums_num", type=int, help="number of albums to get (default: 1)", default=1)
+    parser.add_argument("-r", dest="rating", type=str, help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
+    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
+    parser.add_argument("-s", dest="style", type=str, help="styles, e.g. \"blues rock,indie\"", default=None)
+    parser.add_argument("-v", dest="verbose", action="count", help="verbose", default=0)
 
-    if verbose > 1:
-        print(result)
+    order_group = parser.add_argument_group('sorting/matching arguments')
+    order_group.add_argument("-o", dest="order", type=str, help="sorting criteria", choices=['album', 'year', 'rating'], default=None)
+    order_group.add_argument("-x", dest="strict", type=int, help="strictness level for style/genre matching", choices=range(3), default=0)
+    order_group.add_argument("--and", dest="logic", action="store_true", help="AND logic (default: OR logic)", default=False)
+    order_group.add_argument("--asc", dest="order_asc", action='store_true', help="ascending sort", default=False)
 
-if moods:
-    drv, result = select_moods(drv, moods)
-    if verbose > 1:
-        print(result)
+    group_random = parser.add_argument_group("randomizer arguments")
+    group_random.add_argument("-k", dest="sample_num", type=int, help="number of random styles/genres to get", default=1)
+    group_random.add_argument("--random-album", dest="random_album", action='store_true', help="get random album", default=False)
+    group_random.add_argument("--random-style", dest="random_style", action='store_true', help="get random style", default=False)
+    group_random.add_argument("--random-genre", dest="random_genre", action='store_true', help="get random genre", default=False)
 
-if dates:
-    if verbose > 1:
-        print('Selected entries between {} and {}'.format(min(dates), max(dates)))
-    drv = select_date(drv, dates)
+    options = parser.parse_args()
 
-if logic:
-    drv = select_logic(drv, logic)
+    # Preprocessing
+    dates = list(map(int, re.split(r'\W', options.date))) if options.date else []
+    strict = options.strict
+    if strict:
+        styles = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.style)] if options.style else None
+        genres = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.genre)] if options.genre else None
+    else:
+        styles = re.split(r'\W', options.style) if options.style else None
+        genres = re.split(r'\W', options.genre) if options.genre else None
+    logic = options.logic
+    moods = re.split(r'\W', options.moods) if options.moods else None
+    albums_num = int(options.albums_num)
+    sample_num = int(options.sample_num)
+    order = options.order
+    order_asc = not options.order_asc if order == 'rating' else options.order_asc
+    rating = list(map(float, re.split(r'\s', options.rating))) if options.rating else []
+    rectypes = {'album': 'recordingtype:mainalbum',
+                'live': 'recordingtype:live',
+                'studio': 'recordingtype!:live',
+                'single': 'recordingtype:single',
+                'remix': 'recordingtype:remix',
+                'va': 'recordingtype:variousartists',
+                }
+    verbose = options.verbose
 
-if rating:
-    if verbose > 1:
-        print('Selected {}-{} rating'.format(min(rating), max(rating)))
-    drv = select_rating(drv, rating)
+    # RUNNING
+    drv = init_drv()
 
-if order:
-    if verbose > 1:
-        print('Ordered by %s' % order)
-    drv = set_sorting(drv, order, order_asc)
+    if styles or options.random_style:
+        drv, result = select_genre_or_style(drv, styles, logic, 'style', strict=strict, rand=options.random_style, rand_num=sample_num)
+        if verbose > 1:
+            print(result)
 
-if options.random_album:
-    if verbose > 1:
-        print('Getting ' + str(albums_number) + ' random ' + ('albums' if albums_number > 1 else 'album'))
+    if genres or options.random_genre:
+        drv, result = select_genre_or_style(drv, genres, logic, 'genre', strict=strict, rand=options.random_genre, rand_num=sample_num)
 
-print_albums(get_albums(drv, albums_number, options.random_album), verbose=verbose)
-drv.quit()
+        if verbose > 1:
+            print(result)
+
+    if moods:
+        drv, result = select_moods(drv, moods)
+        if verbose > 1:
+            print(result)
+
+    if logic:
+        drv = select_logic(drv, logic)
+
+    if dates:
+        if verbose > 1:
+            print('Selected entries between {} and {}'.format(min(dates), max(dates)))
+        drv = select_date(drv, dates)
+
+    if rating:
+        if verbose > 1:
+            print('Selected {}-{} rating'.format(min(rating), max(rating)))
+        drv = select_rating(drv, rating)
+
+    if order:
+        if verbose > 1:
+            print('Ordered by %s' % order)
+        drv = set_sorting(drv, order, order_asc)
+
+    if options.random_album:
+        if verbose > 1:
+            print('Getting ' + str(albums_num) + ' random ' + ('albums' if albums_num > 1 else 'album'))
+
+    print_albums(get_albums(drv, albums_num, options.random_album), verbose=verbose)
+    drv.quit()
+
+if __name__ == '__main__':
+    main()

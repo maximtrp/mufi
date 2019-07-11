@@ -9,7 +9,9 @@
 
 ## Usage
 
-```
+### mufi
+
+```bash
 $ mufi -h
 usage: mufi [-h] [-a ARTIST] [-d DATE] [-g GENRE] [-m MOODS]
             [-n ALBUMS_NUMBER] [-r RATING]
@@ -45,4 +47,28 @@ randomizer arguments:
   --random-album        get random album
   --random-style        get random style
   --random-genre        get random genre
+```
+
+### mufi-recs
+
+```bash
+$ mufi-recs -h
+usage: mufi-recs [-h] [-a] [-l] [-n NUMBER] [-o ORDERBY] [-s] [-v]
+
+Mufi fetches your recommendations from last.fm 🐜
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -a          recommended artists (default)
+  -l          recommended albums
+  -n NUMBER   results number
+  -o ORDERBY  sort by: none, random (default), name, listeners
+  -s          show similar/context
+  -v          verbose
+```
+
+## Examples
+
+```bash
+$ mufi 
 ```
