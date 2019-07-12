@@ -217,13 +217,13 @@ def main():
 
     # Options parsing
     parser = ArgumentParser(description="Mufi finds albums by style, genre, date, or mood 🐜")
-    parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
+    #parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
     parser.add_argument("-d", dest="date", type=str, help="date interval, e.g. 2010-2019", default=None)
     parser.add_argument("-g", dest="genre", type=str, help="genres, e.g. rock electronic", default=None)
     parser.add_argument("-m", dest="moods", type=str, help="moods, e.g. sad ", default=None)
     parser.add_argument("-n", dest="albums_num", type=int, help="number of albums to get (default: 1)", default=1)
     parser.add_argument("-r", dest="rating", type=str, help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
-    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
+    #parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
     parser.add_argument("-s", dest="style", type=str, help="styles, e.g. \"blues rock,indie\"", default=None)
     parser.add_argument("-v", dest="verbose", action="count", help="verbose", default=0)
 
@@ -265,6 +265,9 @@ def main():
                 'va': 'recordingtype:variousartists',
                 }
     verbose = options.verbose
+    
+    if not any([styles, genres, moods, dates, options.random_style, options.random_genre, rating]):
+        options.random_style = True
 
     # RUNNING
     drv = init_drv()
