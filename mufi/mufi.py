@@ -42,13 +42,11 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
         if patterns:
             for el in elems:
                 li_text = el.get_attribute('data-text-filter')
-                if strict == 2:
+                if strict:
                     select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) == len(re.split(r'\W', li_text)) for pat in patterns])
-                elif strict == 1:
-                    select = any([len(re.findall("|".join(pat), el.get_attribute('data-text-filter'), re.IGNORECASE)) >= len(pat) for pat in patterns])
                 else:
-                    select = len(re.findall("|".join(patterns), el.get_attribute('data-text-filter'), re.IGNORECASE)) >= len(patterns)
-                
+                    select = any([len(re.findall("|".join(pat), el.get_attribute('data-text-filter'), re.IGNORECASE)) >= len(pat) for pat in patterns])
+
                 if select:
                     name = el.find_element_by_tag_name('input').get_attribute('value')
                     eid = el.find_element_by_tag_name('input').get_attribute('id')
@@ -170,9 +168,13 @@ def set_sorting(drv, order=None, order_asc=False):
 
 
 def get_albums(drv, num=1, rand=False):
-    albums_elems = drv.find_element_by_class_name("desktop-results").find_elements_by_tag_name('tr')
+    try:
+        results_elem = drv.find_element_by_xpath("//div[@class='desktop-results']")
+    except:
+        results_elem = []
     albums = []
-    if albums_elems:
+    if results_elem:
+        albums_elems = results_elem.find_elements_by_tag_name('tr')
         chosen_elems = random.sample(albums_elems[1:], min(num, len(albums_elems))) if rand else albums_elems[1:min(num+1, len(albums_elems))]
 
         for el in chosen_elems:
@@ -229,12 +231,12 @@ def main():
 
     order_group = parser.add_argument_group('sorting/matching arguments')
     order_group.add_argument("-o", dest="order", type=str, help="sorting criteria", choices=['album', 'year', 'rating'], default=None)
-    order_group.add_argument("-x", dest="strict", type=int, help="strictness level for style/genre matching", choices=range(3), default=0)
-    order_group.add_argument("--and", dest="logic", action="store_true", help="AND logic (default: OR logic)", default=False)
+    order_group.add_argument("-x", dest="strict", help="strict style/genre matching", action="store_true", default=False)
+    order_group.add_argument("--and", dest="logic", action="store_true", help="AND logic (default is OR logic)", default=False)
     order_group.add_argument("--asc", dest="order_asc", action='store_true', help="ascending sort", default=False)
 
     group_random = parser.add_argument_group("randomizer arguments")
-    group_random.add_argument("-k", dest="sample_num", type=int, help="number of random styles/genres to get", default=1)
+    group_random.add_argument("-k", dest="sample_num", type=int, help="number of random styles/genres to get (default: 1)", default=1)
     group_random.add_argument("--random-album", dest="random_album", action='store_true', help="get random album", default=False)
     group_random.add_argument("--random-style", dest="random_style", action='store_true', help="get random style", default=False)
     group_random.add_argument("--random-genre", dest="random_genre", action='store_true', help="get random genre", default=False)
@@ -244,12 +246,8 @@ def main():
     # Preprocessing
     dates = list(map(int, re.split(r'\W', options.date))) if options.date else []
     strict = options.strict
-    if strict:
-        styles = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.style)] if options.style else None
-        genres = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.genre)] if options.genre else None
-    else:
-        styles = re.split(r'\W', options.style) if options.style else None
-        genres = re.split(r'\W', options.genre) if options.genre else None
+    styles = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.style)] if options.style else None
+    genres = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.genre)] if options.genre else None
     logic = options.logic
     moods = re.split(r'\W', options.moods) if options.moods else None
     albums_num = int(options.albums_num)

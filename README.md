@@ -69,6 +69,76 @@ optional arguments:
 
 ## Examples
 
+### Defaults
+
+If executed without arguments, *mufi* selects a random style and fetches just one album from Allmusic.
+
 ```bash
-$ mufi 
+$ mufi
+Dierks Bentley - Up on the Ridge (2010) ⋆⋆⋆⋆
 ```
+
+### Selecting 3 random styles and 5 random albums
+
+```bash
+$ mufi --random-style -k 3 -n 5
+Bruce Springsteen - Nebraska (1982) ⋆⋆⋆⋆⋆
+Billy Bragg - Life's a Riot with Spy vs Spy (1983) ⋆⋆⋆⋆
+Bruce Springsteen - The Ghost of Tom Joad (1995) ⋆⋆⋆
+Lucinda Williams - Lucinda Williams (1988) ⋆⋆⋆⋆
+The Avett Brothers - Magpie and the Dandelion (2013) ⋆⋆⋆
+```
+
+It will not output the styles that were selected randomly. To get this info, you need to use `-vv` flag. See below.
+
+### Verbosity
+
+You can tell mufi to be verbose (albums list will become numbered, and artist names will be in bold style):
+
+```bash
+$ mufi -v
+[1] Kenny Neal - Hooked On Your Love (2010) ⋆⋆⋆
+```
+
+Or even more verbose (mufi will tell you what it is doing):
+
+```bash
+$ mufi -vv
+Selected styles: Indie Rock
+
+[1] The Smashing Pumpkins - Mellon Collie and the Infinite Sadness (1995) ⋆⋆⋆⋆
+```
+
+### Getting random albums of certain styles
+
+```bash
+$ mufi -s "blues rock" -n 5 -vv
+Selected styles: Blues-Rock
+
+[1] The Jimi Hendrix Experience / Jimi Hendrix - Are You Experienced? (1967) ⋆⋆⋆⋆⋆
+[2] The Jimi Hendrix Experience / Jimi Hendrix - Electric Ladyland (1968) ⋆⋆⋆⋆⋆
+[3] The Jimi Hendrix Experience / Jimi Hendrix - Axis: Bold as Love (1967) ⋆⋆⋆⋆⋆
+[4] Jimi Hendrix / The Jimi Hendrix Experience - Smash Hits (1969) ⋆⋆⋆⋆
+[5] Jimi Hendrix - First Rays of the New Rising Sun (1997) ⋆⋆⋆⋆
+```
+
+There is a difference between using a space and a comma in a style/genre query string. First, the string is split by non-word and non-whitespace symbols (such as punctuation symbols), and then each of substrings is split by non-word symbols. `Blues rock` will match only blues-rock style, but not all styles containing "rock" and "blues" words. If you want to match all styles with a word "rock", use a comma to separate it from another word: `blues,rock`.
+
+See the following examples. Selecting all styles that contain `afro` substring:
+
+```bash
+$ mufi -s "afro" -vv
+Selected styles: Afro-Brazilian OR Afro-Peruvian OR Afro-Pop OR Afro-beat OR Afro-Cuban Jazz OR Afro-Colombian OR Afro-Cuban
+
+[1] Vinicius Cantuária / Bill Frisell - Lágrimas Mexicanas (2011) ⋆⋆⋆⋆
+```
+
+Selecting just Afro-pop:
+
+```bash
+mufi -s "afro pop" -vv
+Selected styles: Afro-Pop
+
+[1] Fela Kuti - Koola Lobitos/The '69 Los Angeles Sessions (2001) ⋆⋆⋆⋆
+```
+
