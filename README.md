@@ -7,43 +7,53 @@
 1. `mufi`: finding albums by style, genre, date, mood.
 2. `mufi-recs`: getting personal recommendations from Last.fm.
 
+## Dependencies
+
+Mufi depends heavily on [Selenium](https://pypi.org/project/selenium/) and Chrome WebDriver. I will add support for Firefox WebDriver in a future version.
+
+## Installation
+
+```bash
+$ pip install mufi
+```
+
+Or you can install from this git repo:
+
+```bash
+$ pip install git+https://github.com/maximtrp/mufi
+```
+
 ## Usage
 
 ### mufi
 
 ```bash
 $ mufi -h
-usage: mufi [-h] [-a ARTIST] [-d DATE] [-g GENRE] [-m MOODS]
-            [-n ALBUMS_NUMBER] [-r RATING]
-            [-t {album,studio,live,single,remix,va,all}] [-s STYLE] [-v]
-            [-o {album,year,rating}] [-x {0,1,2}] [--and] [--asc]
-            [-k SAMPLE_NUM] [--random-album] [--random-style]
-            [--random-genre]
+usage: mufi [-h] [-d DATE] [-g GENRE] [-m MOODS] [-n ALBUMS_NUM] [-r RATING]
+            [-s STYLE] [-v] [-o {album,year,rating}] [-x] [--and] [--asc]
+            [-k SAMPLE_NUM] [--random-album] [--random-style] [--random-genre]
 
 Mufi finds albums by style, genre, date, or mood 🐜
 
 optional arguments:
   -h, --help            show this help message and exit
-  -a ARTIST             artist
   -d DATE               date interval, e.g. 2010-2019
   -g GENRE              genres, e.g. rock electronic
   -m MOODS              moods, e.g. sad
-  -n ALBUMS_NUMBER      number of albums to get (default: 1)
+  -n ALBUMS_NUM         number of albums to get (default: 1)
   -r RATING             rating interval (1-5), e.g. "3.5 5"
-  -t {album,studio,live,single,remix,va,all}
-                        recording type
   -s STYLE              styles, e.g. "blues rock,indie"
   -v                    verbose
 
 sorting/matching arguments:
   -o {album,year,rating}
                         sorting criteria
-  -x {0,1,2}            strictness level for style/genre matching
-  --and                 use AND logic (default: OR)
+  -x                    strict style/genre matching
+  --and                 AND logic (default is OR logic)
   --asc                 ascending sort
 
 randomizer arguments:
-  -k SAMPLE_NUM         number of random styles/genres to get
+  -k SAMPLE_NUM         number of random styles/genres to get (default: 1)
   --random-album        get random album
   --random-style        get random style
   --random-genre        get random genre
@@ -89,7 +99,7 @@ Lucinda Williams - Lucinda Williams (1988) ⋆⋆⋆⋆
 The Avett Brothers - Magpie and the Dandelion (2013) ⋆⋆⋆
 ```
 
-It will not output the styles that were selected randomly. To get this info, you need to use `-vv` flag. See below.
+It will not output the names of styles that were selected randomly. To get all this info, you need to use `-vv` flag. See below.
 
 ### Verbosity
 
@@ -136,7 +146,7 @@ Selected styles: Afro-Brazilian OR Afro-Peruvian OR Afro-Pop OR Afro-beat OR Afr
 Selecting just Afro-pop:
 
 ```bash
-mufi -s "afro pop" -vv
+$ mufi -s "afro pop" -vv
 Selected styles: Afro-Pop
 
 [1] Fela Kuti - Koola Lobitos/The '69 Los Angeles Sessions (2001) ⋆⋆⋆⋆
