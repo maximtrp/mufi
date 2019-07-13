@@ -23,7 +23,7 @@ Or you can install from this git repo:
 $ pip install git+https://github.com/maximtrp/mufi
 ```
 
-To use `mufi-recs` command, you need to provide your login data. Mufi reads it from `~/.lastfm` and `~/.config/mufi/.lastfm`. Just say:
+To use `mufi-recs` command, you need to provide your Last.fm login data. Mufi reads it from `~/.lastfm` and `~/.config/mufi/.lastfm` files. Just say:
 
 ```bash
 $ echo login password > ~/.lastfm
