@@ -1,6 +1,6 @@
 # Mufi 🐜
 
-**Mufi** is a command-line music finder written in Python with a bit of Javascript. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
+**Mufi** is a command-line **mu**sic **fi**nder written in Python with a bit of Javascript. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
 
 **Mufi** comes with two command-line tools:
 
