@@ -1,6 +1,6 @@
 # Mufi 🐜
 
-**Mufi** is a command-line music finder written in Python with a bit of Javascript and based on Selenium. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
+**Mufi** is a command-line music finder written in Python with a bit of Javascript. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
 
 **Mufi** comes with two command-line tools:
 
@@ -9,7 +9,7 @@
 
 ## Dependencies
 
-Mufi depends heavily on [Selenium](https://pypi.org/project/selenium/) and Chrome WebDriver. I will add support for Firefox WebDriver in a future version.
+Mufi depends heavily on [Selenium](https://pypi.org/project/selenium/) and Chrome WebDriver. I will add support for Firefox WebDriver soon.
 
 ## Installation
 
