@@ -118,6 +118,11 @@ def select_date(drv, dates):
     drv.execute_script(script)
     return drv
 
+def select_rectype(drv, rectype):
+
+    script = 'document.getElementById("{}").click();'.format(rectype)
+    drv.execute_script(script)
+    return drv
 
 def select_logic(drv, logic=False):
 
@@ -225,7 +230,7 @@ def main():
     parser.add_argument("-m", dest="moods", type=str, help="moods, e.g. sad ", default=None)
     parser.add_argument("-n", dest="albums_num", type=int, help="number of albums to get (default: 1)", default=1)
     parser.add_argument("-r", dest="rating", type=str, help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
-    #parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
+    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
     parser.add_argument("-s", dest="style", type=str, help="styles, e.g. \"blues rock,indie\"", default=None)
     parser.add_argument("-v", dest="verbose", action="count", help="verbose", default=0)
 
@@ -261,6 +266,7 @@ def main():
                 'single': 'recordingtype:single',
                 'remix': 'recordingtype:remix',
                 'va': 'recordingtype:variousartists',
+                'all': 'all-recording-types',
                 }
     verbose = options.verbose
     
@@ -303,6 +309,9 @@ def main():
         if verbose > 1:
             print('Ordered by %s' % order)
         drv = set_sorting(drv, order, order_asc)
+
+    if rectype != 'all':
+        drv = select_rectype(drv, rectypes[rectype])
 
     if options.random_album:
         if verbose > 1:
