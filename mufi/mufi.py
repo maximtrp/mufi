@@ -268,6 +268,7 @@ def main():
                 'va': 'recordingtype:variousartists',
                 'all': 'all-recording-types',
                 }
+    rectype = options.rectype
     verbose = options.verbose
     
     if not any([styles, genres, moods, dates, options.random_style, options.random_genre, rating]):
