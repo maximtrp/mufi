@@ -4,6 +4,7 @@ import random
 import re
 import time
 import sys
+import tqdm
 from selenium import webdriver
 
 class term:
@@ -33,19 +34,25 @@ def init_drv(headless=True, wait=10):
     drv.get(base_url)
     return drv
 
-def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=False, rand_num=1):
+def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=False, rand_num=1, verbose=0):
 
-    elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
+    elems = drv.find_elements_by_xpath("//li[@class='" + what + "']") 
     results = []
         
     if elems:
         if patterns:
-            for el in elems:
+            for el in (tqdm.tqdm(elems) if verbose > 2 else elems):
                 li_text = el.get_attribute('data-text-filter')
-                if strict:
-                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) == len(re.split(r'\W', li_text)) for pat in patterns])
-                else:
-                    select = any([len(re.findall("|".join(pat), el.get_attribute('data-text-filter'), re.IGNORECASE)) >= len(pat) for pat in patterns])
+                if strict == 0:
+                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= 0 for pat in patterns])
+                elif strict == 1:
+                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) for pat in patterns])
+                elif strict == 2:
+                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
+                elif strict == 3:
+                    select = any([pat.lower() in li_text for pat in patterns])
+                elif strict > 4:
+                    select = any([re.match(pat, li_text, re.IGNORECASE) for pat in patterns])
 
                 if select:
                     name = el.find_element_by_tag_name('input').get_attribute('value')
@@ -64,9 +71,9 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
     return None
 
 
-def select_genre_or_style(drv, patterns, logic=False, what='style', strict=False, rand=False, rand_num=1):
+def select_genre_or_style(drv, patterns, logic=False, what='style', strict=False, rand=False, rand_num=1, verbose=0):
     
-    lst = __get_genre_or_style(drv, patterns, what, strict, rand, rand_num)
+    lst = __get_genre_or_style(drv, patterns, what, strict, rand, rand_num, verbose)
     logic_str = ' AND ' if logic else ' OR '
     if lst:
         result = 'Selected ' + what + 's: ' + logic_str.join([l['name'] for l in lst])
@@ -236,7 +243,7 @@ def main():
 
     order_group = parser.add_argument_group('sorting/matching arguments')
     order_group.add_argument("-o", dest="order", type=str, help="sorting criteria", choices=['album', 'year', 'rating'], default=None)
-    order_group.add_argument("-x", dest="strict", help="strict style/genre matching", action="store_true", default=False)
+    order_group.add_argument("-x", dest="strict", help="strictness level for style/genre matching", action='count', default=0)
     order_group.add_argument("--and", dest="logic", action="store_true", help="AND logic (default is OR logic)", default=False)
     order_group.add_argument("--asc", dest="order_asc", action='store_true', help="ascending sort", default=False)
 
@@ -251,7 +258,10 @@ def main():
     # Preprocessing
     dates = list(map(int, re.split(r'\W', options.date))) if options.date else []
     strict = options.strict
-    styles = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.style)] if options.style else None
+    if strict > 2:
+        styles = [p.strip() for p in re.split(r'[,;]', options.style)] if options.style else None
+    else:
+        styles = [list(map(str.strip, [p for p in re.split(r'\W', p.strip()) if len(p) > 2])) for p in re.split(r'[,;]', options.style)] if options.style else None
     genres = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.genre)] if options.genre else None
     logic = options.logic
     moods = re.split(r'\W', options.moods) if options.moods else None
@@ -278,7 +288,7 @@ def main():
     drv = init_drv()
 
     if styles or options.random_style:
-        drv, result = select_genre_or_style(drv, styles, logic, 'style', strict=strict, rand=options.random_style, rand_num=sample_num)
+        drv, result = select_genre_or_style(drv, styles, logic, 'style', strict=strict, rand=options.random_style, rand_num=sample_num, verbose=verbose)
         if verbose > 1:
             print(result)
 
