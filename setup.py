@@ -2,7 +2,7 @@ from setuptools import setup
 from os.path import join, dirname
 
 setup(name='mufi',
-        version='0.1.0',
+        version='0.2.0',
         description='Mufi: simple music finder for command-line',
         long_description=open(join(dirname(__file__), 'README.md')).read(),
         long_description_content_type='text/markdown',
