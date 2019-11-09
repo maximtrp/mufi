@@ -44,15 +44,15 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
             for el in (tqdm.tqdm(elems) if verbose > 2 else elems):
                 li_text = el.get_attribute('data-text-filter')
                 if strict == 0:
-                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= 0 for pat in patterns])
+                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= 0 for pat in patterns])
                 elif strict == 1:
-                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) for pat in patterns])
+                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) for pat in patterns])
                 elif strict == 2:
-                    select = any([len(re.findall("|".join(pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
+                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
                 elif strict == 3:
-                    select = any([pat.lower() in li_text for pat in patterns])
-                elif strict > 4:
-                    select = any([re.match(pat, li_text, re.IGNORECASE) for pat in patterns])
+                    select = any([pat.lower() in li_text.lower() for pat in patterns])
+                elif strict >= 4:
+                    select = any([pat.lower() == li_text.lower() for pat in patterns])
 
                 if select:
                     name = el.find_element_by_tag_name('input').get_attribute('value')
@@ -258,11 +258,10 @@ def main():
     # Preprocessing
     dates = list(map(int, re.split(r'\W', options.date))) if options.date else []
     strict = options.strict
-    if strict > 2:
-        styles = [p.strip() for p in re.split(r'[,;]', options.style)] if options.style else None
-    else:
-        styles = [list(map(str.strip, [p for p in re.split(r'\W', p.strip()) if len(p) > 2])) for p in re.split(r'[,;]', options.style)] if options.style else None
-    genres = [list(map(str.strip, re.split(r'\W', p.strip()))) for p in re.split(r'[^\w\s]', options.genre)] if options.genre else None
+
+    styles = re.split(r'[,;]', options.style) if options.style else []
+    genres = re.split(r'[,;]', options.genre) if options.genre else []
+
     logic = options.logic
     moods = re.split(r'\W', options.moods) if options.moods else None
     albums_num = int(options.albums_num)
