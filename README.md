@@ -155,7 +155,6 @@ We just passed one word "afro" and *mufi* selected all the styles that at least 
 
 See the following examples. Selecting all styles that contain `afro` substring:
 
-
 Selecting just Afro-pop:
 
 ```bash
@@ -164,4 +163,3 @@ Selected styles: Afro-Pop
 
 [1] Fela Kuti - Koola Lobitos/The '69 Los Angeles Sessions (2001) ⋆⋆⋆⋆
 ```
-

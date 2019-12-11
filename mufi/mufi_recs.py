@@ -2,7 +2,7 @@
 
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from random import sample, shuffle
+from random import shuffle
 import os
 import re
 import sys
@@ -128,7 +128,7 @@ def print_albums(lst, context=True, comfy=False, verbose=0):
             print(term.BOLD, item['artist'], term.END, ' - ', item['album'], listeners, sep='')
         else:
             print(item['artist'], '-', item['album'],)
-       
+
         if context:
             print(item['context'])
         if comfy:

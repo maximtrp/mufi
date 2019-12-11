@@ -47,7 +47,8 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
                 elif strict == 1:
                     select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) for pat in patterns])
                 elif strict == 2:
-                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
+                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat)\
+                        and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
                 elif strict == 3:
                     select = any([pat.lower() in li_text.lower()\
                         for pat in patterns])
@@ -214,7 +215,7 @@ def print_albums(albums, verbose=0):
     if albums:
         for i, album in enumerate(albums):
             date = '(%s)' % album['date'] if album['date'] else ''
-            
+
             if verbose:
                 print('[%d] ' % (i+1), term.BOLD, album['artist'], term.END, ' - ', album['title'], ' ' + date, ' ' + '⋆' * album['rating'], sep='')
             else:
