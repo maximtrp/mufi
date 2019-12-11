@@ -134,6 +134,7 @@ def print_albums(lst, context=True, comfy=False, verbose=0):
         if comfy:
             print('')
 
+
 def init_drv(headless=True, wait=15):
 
     options = webdriver.ChromeOptions()
@@ -144,6 +145,7 @@ def init_drv(headless=True, wait=15):
     drv.implicitly_wait(wait)
     drv.get(login_url)
     return drv
+
 
 #if __name__ == '__main__':
 def main():

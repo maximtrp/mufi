@@ -37,7 +37,7 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
 
     elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
     results = []
-        
+
     if elems:
         if patterns:
             for el in (tqdm.tqdm(elems) if verbose > 2 else elems):
@@ -214,10 +214,10 @@ def print_albums(albums, verbose=0):
 
     if albums:
         for i, album in enumerate(albums):
-            date = '(%s)' % album['date'] if album['date'] else ''
+            date = ' (%s)' % album['date'] if album['date'] else ''
 
             if verbose:
-                print('[%d] ' % (i+1), term.BOLD, album['artist'], term.END, ' - ', album['title'], ' ' + date, ' ' + '⋆' * album['rating'], sep='')
+                print('[%d] ' % (i+1), term.BOLD, album['artist'], term.END, ' - ', album['title'], date, ' ', '⋆' * album['rating'], sep='')
             else:
                 print(album['artist'], '-', album['title'], date, '⋆' * album['rating'])
 
