@@ -54,7 +54,7 @@ optional arguments:
 sorting/matching arguments:
   -o {album,year,rating}
                         sorting criteria
-  -x                    strict style/genre matching
+  -x                    strictness level for style/genre matching
   --and                 AND logic (default is OR logic)
   --asc                 ascending sort
 
@@ -138,9 +138,9 @@ Selected styles: Blues-Rock
 [5] Jimi Hendrix - First Rays of the New Rising Sun (1997) ⋆⋆⋆⋆
 ```
 
-There is a difference between using a space and a comma in a style/genre query string. First, the string is split by non-word and non-whitespace symbols (such as punctuation symbols), and then each of substrings is split by non-word symbols. `Blues rock` will match only blues-rock style, but not all styles containing "rock" and "blues" words. If you want to match all styles with a word "rock", use a comma to separate it from another word: `blues,rock`.
+### Strictness level
 
-See the following examples. Selecting all styles that contain `afro` substring:
+Let's begin with a simple example.
 
 ```bash
 $ mufi -s "afro" -vv
@@ -148,6 +148,13 @@ Selected styles: Afro-Brazilian OR Afro-Peruvian OR Afro-Pop OR Afro-beat OR Afr
 
 [1] Vinicius Cantuária / Bill Frisell - Lágrimas Mexicanas (2011) ⋆⋆⋆⋆
 ```
+
+We just passed one word "afro" and *mufi* selected all the styles that at least partially matched it. *Mufi* can behave a bit smarter. There are 5 strictness levels for style/genre matching. Here is the whole search algorithm works. First, the input string is split by a comma or semicolon (if any). We get a list of substrings for matching styles/genres. Next, the searching function tries to match each style in database to each of these substrings using the strictness level:
+
+* Default: substring is further split by non-word characters and if anything 
+
+See the following examples. Selecting all styles that contain `afro` substring:
+
 
 Selecting just Afro-pop:
 

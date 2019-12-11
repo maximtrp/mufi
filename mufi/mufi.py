@@ -2,7 +2,6 @@
 
 import random
 import re
-import time
 import sys
 import tqdm
 from selenium import webdriver
@@ -36,7 +35,7 @@ def init_drv(headless=True, wait=10):
 
 def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=False, rand_num=1, verbose=0):
 
-    elems = drv.find_elements_by_xpath("//li[@class='" + what + "']") 
+    elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
     results = []
         
     if elems:
@@ -50,9 +49,11 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
                 elif strict == 2:
                     select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
                 elif strict == 3:
-                    select = any([pat.lower() in li_text.lower() for pat in patterns])
+                    select = any([pat.lower() in li_text.lower()\
+                        for pat in patterns])
                 elif strict >= 4:
-                    select = any([pat.lower() == li_text.lower() for pat in patterns])
+                    select = any([pat.lower() == li_text.lower()\
+                        for pat in patterns])
 
                 if select:
                     name = el.find_element_by_tag_name('input').get_attribute('value')
@@ -237,7 +238,7 @@ def main():
     parser.add_argument("-m", dest="moods", type=str, help="moods, e.g. sad ", default=None)
     parser.add_argument("-n", dest="albums_num", type=int, help="number of albums to get (default: 1)", default=1)
     parser.add_argument("-r", dest="rating", type=str, help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
-    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
+    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=['album','studio','live','single','remix','va','all'], default='all')
     parser.add_argument("-s", dest="style", type=str, help="styles, e.g. \"blues rock,indie\"", default=None)
     parser.add_argument("-v", dest="verbose", action="count", help="verbose", default=0)
 
@@ -279,7 +280,7 @@ def main():
                 }
     rectype = options.rectype
     verbose = options.verbose
-    
+
     if not any([styles, genres, moods, dates, options.random_style, options.random_genre, rating]):
         options.random_style = True
 

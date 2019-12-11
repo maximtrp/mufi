@@ -168,10 +168,11 @@ def main():
     verbose = options.verbose
 
     drv = init_drv()
-    
+
     login_data = get_login_data(paths)
     if not login_data:
-        print('No login data found. Please say `echo login password > ~/.lastfm` in terminal. You can also use `~/.config/mufi/.lastfm` file to store your login data')
+        print('No login data found. Please say `echo login password > ~/.lastfm` in terminal.\
+            You can also use `~/.config/mufi/.lastfm` file to store your login data')
         sys.exit(1)
 
     user, password = login_data
