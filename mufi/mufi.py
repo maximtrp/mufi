@@ -5,6 +5,7 @@ import re
 import sys
 import tqdm
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 
 
 class term:
@@ -36,7 +37,10 @@ def init_drv(headless=True, wait=10):
     return drv
 
 
-def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=False, rand_num=1, verbose=0):
+def __get_genre_or_style(
+    drv, patterns=None, what='style',
+    strict=False, rand=False, rand_num=1, verbose=0
+):
 
     elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
     results = []
@@ -46,14 +50,39 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
             for el in (tqdm.tqdm(elems) if verbose > 2 else elems):
                 li_text = el.get_attribute('data-text-filter')
                 if strict == 0:
-                    select = any([len(re.findall(
-                        re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= 0 for pat in patterns])
+                    select = any([
+                        len(
+                            re.findall(
+                                re.sub(r'\W', '|', pat),
+                                li_text,
+                                re.IGNORECASE
+                            )
+                        ) >= 0
+                        for pat in patterns
+                    ])
                 elif strict == 1:
-                    select = any([len(re.findall(re.sub(
-                        r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat) for pat in patterns])
+                    select = any([
+                        len(
+                            re.findall(
+                                re.sub(r'\W', '|', pat),
+                                li_text,
+                                re.IGNORECASE
+                            )
+                        ) >= len(pat)
+                        for pat in patterns
+                    ])
                 elif strict == 2:
-                    select = any([len(re.findall(re.sub(r'\W', '|', pat), li_text, re.IGNORECASE)) >= len(pat)
-                                  and len(pat) <= len(re.split(r'\W', li_text)) for pat in patterns])
+                    select = any([
+                        len(
+                            re.findall(
+                                re.sub(r'\W', '|', pat),
+                                li_text,
+                                re.IGNORECASE
+                            )
+                        ) >= len(pat)
+                        and len(pat) <= len(re.split(r'\W', li_text))
+                        for pat in patterns
+                    ])
                 elif strict == 3:
                     select = any([pat.lower() in li_text.lower()
                                   for pat in patterns])
@@ -81,7 +110,10 @@ def __get_genre_or_style(drv, patterns=None, what='style', strict=False, rand=Fa
     return None
 
 
-def select_genre_or_style(drv, patterns, logic=False, what='style', strict=False, rand=False, rand_num=1, verbose=0):
+def select_genre_or_style(
+    drv, patterns, logic=False, what='style',
+    strict=False, rand=False, rand_num=1, verbose=0
+):
 
     lst = __get_genre_or_style(
         drv, patterns, what, strict, rand, rand_num, verbose)
@@ -91,7 +123,8 @@ def select_genre_or_style(drv, patterns, logic=False, what='style', strict=False
             logic_str.join([l['name'] for l in lst])
 
         ids = [l['id'] for l in lst]
-        script = '%s.forEach(function(e, i){document.getElementById(e).click();});' % ids
+        script = '%s.forEach(function(e, i)\
+            {document.getElementById(e).click();});' % ids
         drv.execute_script(script)
     else:
         result = what.capitalize() + ' not found'
@@ -106,8 +139,12 @@ def __get_moods(drv, moods=None):
     if elems:
         results = []
         for el in elems:
-            select = len(re.findall("|".join(moods),
-                                    el.get_attribute('value'), re.IGNORECASE)) > 0
+            select = len(
+                re.findall(
+                    "|".join(moods),
+                    el.get_attribute('value'),
+                    re.IGNORECASE)
+                ) > 0
 
             if select:
                 name = el.get_attribute('value')
@@ -124,7 +161,8 @@ def select_moods(drv, moods):
 
     if lst:
         ids = [l['id'] for l in lst]
-        script = '%s.forEach(function(e, i){document.getElementById(e).click();});' % ids
+        script = '%s.forEach(function(e, i)\
+            {document.getElementById(e).click();});' % ids
         drv.execute_script(script)
 
     result = 'Selected moods: ' + \
@@ -135,8 +173,10 @@ def select_moods(drv, moods):
 def select_date(drv, dates):
     start, end = min(dates), max(dates)
 
-    script = '''document.getElementsByClassName('start-year')[0].value = %s;
-                document.getElementsByClassName('end-year')[0].value = %s;''' % (start, end)
+    script = '''
+        document.getElementsByClassName('start-year')[0].value = %s;
+        document.getElementsByClassName('end-year')[0].value = %s;
+    ''' % (start, end)
     drv.execute_script(script)
     return drv
 
@@ -153,7 +193,8 @@ def select_logic(drv, logic=False):
     class_name = ('and' if logic else 'or') + '-logic'
     drv.find_element_by_class_name(class_name)
     drv.find_element_by_xpath('//div[@class="desktop-results"]')
-    script = "document.getElementsByClassName('desktop-results')[0].remove();document.getElementsByClassName('%s')[0].click();" % class_name
+    script = "document.getElementsByClassName('desktop-results')[0].remove();\
+        document.getElementsByClassName('%s')[0].click();" % class_name
     drv.execute_script(script)
     return drv
 
@@ -172,7 +213,8 @@ def select_rating(drv, vals):
     minr, maxr = min(vals), max(vals)
 
     ids = [v for k, v in rating.items() if k >= minr and k <= maxr]
-    script = '%s.forEach(function(e, i){document.getElementById(e).click();});' % ids
+    script = '%s.forEach(function(e, i)\
+        {document.getElementById(e).click();});' % ids
     drv.execute_script(script)
 
     return drv
@@ -185,13 +227,13 @@ def set_sorting(drv, order=None, order_asc=False):
         if not results:
             return drv
 
-        script = "document.getElementsByClassName('{}')[0].children[0].click();".format(
-            order)
+        script = "document.getElementsByClassName('{}')[0]\
+            .children[0].click();".format(order)
         drv.execute_script(script)
 
         if not order_asc:
-            script = "document.getElementsByClassName('{}')[0].children[0].click();".format(
-                order)
+            script = "document.getElementsByClassName('{}')[0]\
+                .children[0].click();".format(order)
             drv.find_element_by_class_name("desktop-results")
             drv.execute_script(script)
 
@@ -202,13 +244,15 @@ def get_albums(drv, num=1, rand=False):
     try:
         results_elem = drv.find_element_by_xpath(
             "//div[@class='desktop-results']")
-    except:
+    except NoSuchElementException:
         results_elem = []
     albums = []
     if results_elem:
         albums_elems = results_elem.find_elements_by_tag_name('tr')
-        chosen_elems = random.sample(albums_elems[1:], min(num, len(
-            albums_elems))) if rand else albums_elems[1:min(num+1, len(albums_elems))]
+        chosen_elems = random.sample(
+            albums_elems[1:],
+            min(num, len(albums_elems))
+            ) if rand else albums_elems[1:min(num+1, len(albums_elems))]
 
         for el in chosen_elems:
             title_el = el.find_element_by_class_name("title")
@@ -259,7 +303,7 @@ def main():
     # Options parsing
     parser = ArgumentParser(
         description="Mufi finds albums by style, genre, date, or mood 🐜")
-    #parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
+    # parser.add_argument("-a", dest="artist", type=str, help="artist", default=None)
     parser.add_argument("-d", dest="date", type=str,
                         help="date interval, e.g. 2010-2019", default=None)
     parser.add_argument("-g", dest="genre", type=str,
@@ -270,8 +314,11 @@ def main():
                         help="number of albums to get (default: 1)", default=1)
     parser.add_argument("-r", dest="rating", type=str,
                         help="rating interval (1-5), e.g. \"3.5 5\"", default=None)
-    parser.add_argument("-t", dest="rectype", type=str, help="recording type", choices=[
-                        'album', 'studio', 'live', 'single', 'remix', 'va', 'all'], default='all')
+    parser.add_argument(
+        "-t", dest="rectype", type=str, help="recording type",
+        choices=['album', 'studio', 'live', 'single', 'remix', 'va', 'all'],
+        default='all'
+    )
     parser.add_argument("-s", dest="style", type=str,
                         help="styles, e.g. \"blues rock,indie\"", default=None)
     parser.add_argument("-v", dest="verbose", action="count",
@@ -281,7 +328,9 @@ def main():
     order_group.add_argument("-o", dest="order", type=str, help="sorting criteria",
                              choices=['album', 'year', 'rating'], default=None)
     order_group.add_argument(
-        "-x", dest="strict", help="strictness level for style/genre matching", action='count', default=0)
+        "-x", dest="strict", help="strictness level for style/genre matching",
+        action='count', default=0
+    )
     order_group.add_argument("--and", dest="logic", action="store_true",
                              help="AND logic (default is OR logic)", default=False)
     order_group.add_argument("--asc", dest="order_asc",
@@ -326,7 +375,12 @@ def main():
     rectype = options.rectype
     verbose = options.verbose
 
-    if not any([styles, genres, moods, dates, options.random_style, options.random_genre, rating]):
+    if not any(
+        [
+            styles, genres, moods, dates, options.random_style,
+            options.random_genre, rating
+        ]
+    ):
         options.random_style = True
 
     # RUNNING
@@ -334,13 +388,17 @@ def main():
 
     if styles or options.random_style:
         drv, result = select_genre_or_style(
-            drv, styles, logic, 'style', strict=strict, rand=options.random_style, rand_num=sample_num, verbose=verbose)
+            drv, styles, logic, 'style', strict=strict,
+            rand=options.random_style, rand_num=sample_num, verbose=verbose
+        )
         if verbose > 1:
             print(result)
 
     if genres or options.random_genre:
         drv, result = select_genre_or_style(
-            drv, genres, logic, 'genre', strict=strict, rand=options.random_genre, rand_num=sample_num)
+            drv, genres, logic, 'genre', strict=strict,
+            rand=options.random_genre, rand_num=sample_num
+        )
 
         if verbose > 1:
             print(result)
