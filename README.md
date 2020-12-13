@@ -1,5 +1,10 @@
 # Mufi 🐜
 
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/34ab4af51dad4b118f945591ee8846e0)](https://www.codacy.com/gh/maximtrp/mufi/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=maximtrp/mufi&amp;utm_campaign=Badge_Grade)
+![PyPI](https://img.shields.io/pypi/v/mufi?label=pypi&logo=python&logoColor=white)
+[![Downloads](https://static.pepy.tech/personalized-badge/mufi?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/mufi)
+
+
 **Mufi** is a command-line **mu**sic **fi**nder written in Python with a bit of Javascript. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
 
 **Mufi** comes with two command-line tools:
