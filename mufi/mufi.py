@@ -57,7 +57,7 @@ def __get_genre_or_style(
                                 li_text,
                                 re.IGNORECASE
                             )
-                        ) >= 0
+                        ) >= 1
                         for pat in patterns
                     ])
                 elif strict == 1:
@@ -292,9 +292,6 @@ def print_albums(albums, verbose=0):
         if verbose:
             print('Sorry, nothing found')
         sys.exit(1)
-
-# if __name__ == '__main__':
-
 
 def main():
 

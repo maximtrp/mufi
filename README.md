@@ -4,7 +4,6 @@
 ![PyPI](https://img.shields.io/pypi/v/mufi?label=pypi&logo=python&logoColor=white)
 [![Downloads](https://static.pepy.tech/personalized-badge/mufi?period=total&units=international_system&left_color=grey&right_color=green&left_text=downloads)](https://pepy.tech/project/mufi)
 
-
 **Mufi** is a command-line **mu**sic **fi**nder written in Python with a bit of Javascript. It is capable of finding albums of various styles, genres, moods (even random, using command-line args). Basically, it uses Allmusic and Last.fm to get brief music information.
 
 **Mufi** comes with two command-line tools:
@@ -14,24 +13,24 @@
 
 ## Dependencies
 
-Mufi depends heavily on [Selenium](https://pypi.org/project/selenium/) and Chrome WebDriver. I will add support for Firefox WebDriver soon.
+Mufi depends heavily on [Selenium](https://pypi.org/project/selenium/) and Chrome WebDriver.
 
 ## Installation
 
 ```bash
-$ pip install mufi
+pip install mufi
 ```
 
 Or you can install from this git repo:
 
 ```bash
-$ pip install git+https://github.com/maximtrp/mufi
+pip install git+https://github.com/maximtrp/mufi
 ```
 
 To use `mufi-recs` command, you need to provide your Last.fm login data. Mufi reads it from `~/.lastfm` and `~/.config/mufi/.lastfm` files. Just say:
 
 ```bash
-$ echo login password > ~/.lastfm
+echo login password > ~/.lastfm
 ```
 
 ## Usage
@@ -156,7 +155,7 @@ Selected styles: Afro-Brazilian OR Afro-Peruvian OR Afro-Pop OR Afro-beat OR Afr
 
 We just passed one word "afro" and *mufi* selected all the styles that at least partially matched it. *Mufi* can behave a bit smarter. There are 5 strictness levels for style/genre matching. Here is the whole search algorithm works. First, the input string is split by a comma or semicolon (if any). We get a list of substrings for matching styles/genres. Next, the searching function tries to match each style in database to each of these substrings using the strictness level:
 
-* Default: substring is further split by non-word characters and if anything 
+* Default: substring is further split by non-word characters and if anything
 
 See the following examples. Selecting all styles that contain `afro` substring:
 
