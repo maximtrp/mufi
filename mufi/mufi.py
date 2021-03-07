@@ -38,9 +38,8 @@ def init_drv(headless=True, wait=10):
 
 
 def __get_genre_or_style(
-    drv, patterns=None, what='style',
-    strict=False, rand=False, rand_num=1, verbose=0
-):
+        drv, patterns=None, what='style',
+        strict=False, rand=False, rand_num=1, verbose=0):
 
     elems = drv.find_elements_by_xpath("//li[@class='" + what + "']")
     results = []
@@ -52,7 +51,7 @@ def __get_genre_or_style(
                 if strict == 0:
                     select = any([
                         len(
-                            re.findall(
+                            re.match(
                                 re.sub(r'\W', '|', pat),
                                 li_text,
                                 re.IGNORECASE
@@ -68,7 +67,7 @@ def __get_genre_or_style(
                                 li_text,
                                 re.IGNORECASE
                             )
-                        ) >= len(pat)
+                        ) >= len(patterns)
                         for pat in patterns
                     ])
                 elif strict == 2:
