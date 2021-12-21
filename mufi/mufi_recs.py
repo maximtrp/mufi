@@ -207,7 +207,7 @@ def print_albums(lst, context=True, comfy=False, verbose=0):
 def init_drv(headless=True, wait=15):
 
     options = webdriver.ChromeOptions()
-    options.headless = False #headless
+    options.headless = True #headless
     login_url = 'https://secure.last.fm/login'
 
     drv = webdriver.Chrome(options=options)
